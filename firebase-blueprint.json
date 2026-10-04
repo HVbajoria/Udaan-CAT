@@ -1,0 +1,385 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Aspirant profile detailing target percentile, daily study hours, streak and settings",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "User UID matching auth.uid",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Student full or display name",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "email": {
+          "type": "string",
+          "description": "Verified student email address",
+          "maxLength": 150,
+          "format": "email"
+        },
+        "targetPercentile": {
+          "type": "number",
+          "description": "Target percentile between 50 and 100"
+        },
+        "dailyHours": {
+          "type": "number",
+          "description": "Planned daily study hours"
+        },
+        "targetIIMs": {
+          "type": "array",
+          "description": "List of preferred target business schools"
+        },
+        "registeredAt": {
+          "type": "string",
+          "description": "ISO timestamp of registration",
+          "maxLength": 50
+        },
+        "baselineCompleted": {
+          "type": "boolean",
+          "description": "Whether baseline diagnostic has been taken"
+        },
+        "currentDay": {
+          "type": "number",
+          "description": "Current day in 45-day roadmap (1-45)"
+        },
+        "streak": {
+          "type": "number",
+          "description": "Consecutive days study streak"
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "Date string of last active study session",
+          "maxLength": 20
+        },
+        "dailyRemindersEnabled": {
+          "type": "boolean",
+          "description": "Opt-in status for morning study notification"
+        },
+        "reminderTime": {
+          "type": "string",
+          "description": "Notification time string",
+          "maxLength": 20
+        }
+      },
+      "required": ["id", "name", "email", "targetPercentile", "dailyHours", "streak"]
+    },
+    "StudyState": {
+      "title": "StudyState",
+      "description": "Central study state document for roadmap and topic progress",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User UID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "completedSegmentIds": {
+          "type": "array",
+          "description": "IDs of completed 30-minute study segments"
+        },
+        "completedDays": {
+          "type": "array",
+          "description": "Completed roadmap day numbers"
+        },
+        "topicMastery": {
+          "type": "object",
+          "description": "Map of topicId to mastery score, level, accuracy, questionsPracticed"
+        },
+        "diagnosticResult": {
+          "type": "object",
+          "description": "Diagnostic evaluation snapshot"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO string of last update",
+          "maxLength": 50
+        }
+      },
+      "required": ["userId", "completedSegmentIds", "completedDays"]
+    },
+    "DailySubmission": {
+      "title": "DailySubmission",
+      "description": "Submission record for a daily test drill",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique submission ID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date string YYYY-MM-DD",
+          "maxLength": 20
+        },
+        "dayNumber": {
+          "type": "number",
+          "description": "Roadmap day number 1-45"
+        },
+        "topicIds": {
+          "type": "array",
+          "description": "Array of tested syllabus topic IDs"
+        },
+        "score": {
+          "type": "number",
+          "description": "Net score obtained"
+        },
+        "maxScore": {
+          "type": "number",
+          "description": "Maximum achievable score"
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Percentage accuracy 0-100"
+        },
+        "timeSpentSeconds": {
+          "type": "number",
+          "description": "Time elapsed taking test"
+        },
+        "skillDelta": {
+          "type": "object",
+          "description": "Map of topicId to before, after and level values"
+        }
+      },
+      "required": ["id", "userId", "date", "score", "maxScore", "accuracy"]
+    },
+    "MockScore": {
+      "title": "MockScore",
+      "description": "Score record for full or sectional mock test",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Mock score record ID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name or test provider",
+          "maxLength": 100
+        },
+        "date": {
+          "type": "string",
+          "description": "Date taken",
+          "maxLength": 20
+        },
+        "type": {
+          "type": "string",
+          "description": "Mock exam type",
+          "maxLength": 50
+        },
+        "varcScore": {
+          "type": "number",
+          "description": "VARC score"
+        },
+        "dilrScore": {
+          "type": "number",
+          "description": "DILR score"
+        },
+        "qaScore": {
+          "type": "number",
+          "description": "QA score"
+        },
+        "totalScore": {
+          "type": "number",
+          "description": "Total scaled score"
+        },
+        "maxScore": {
+          "type": "number",
+          "description": "Maximum exam score"
+        },
+        "percentile": {
+          "type": "number",
+          "description": "Estimated percentile"
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Percentage accuracy"
+        },
+        "timeTakenMinutes": {
+          "type": "number",
+          "description": "Total duration in minutes"
+        },
+        "analysisNotes": {
+          "type": "string",
+          "description": "Student reflection notes",
+          "maxLength": 1000
+        },
+        "mistakesSummary": {
+          "type": "object",
+          "description": "Breakdown of mistake categories"
+        }
+      },
+      "required": ["id", "userId", "name", "date", "totalScore", "percentile"]
+    },
+    "SessionLog": {
+      "title": "SessionLog",
+      "description": "Pomodoro study session record tied to syllabus topic",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Session record ID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp",
+          "maxLength": 50
+        },
+        "date": {
+          "type": "string",
+          "description": "Date YYYY-MM-DD",
+          "maxLength": 20
+        },
+        "topicId": {
+          "type": "string",
+          "description": "Syllabus topic identifier",
+          "maxLength": 100
+        },
+        "topicName": {
+          "type": "string",
+          "description": "Human readable topic title",
+          "maxLength": 100
+        },
+        "section": {
+          "type": "string",
+          "description": "CAT section VARC, DILR, or QA",
+          "maxLength": 10
+        },
+        "segmentId": {
+          "type": "string",
+          "description": "Associated daily study plan segment ID",
+          "maxLength": 100
+        },
+        "durationMinutes": {
+          "type": "number",
+          "description": "Tracked minutes spent"
+        },
+        "completedPomodoros": {
+          "type": "number",
+          "description": "Number of intervals completed"
+        },
+        "sessionType": {
+          "type": "string",
+          "description": "Session mode",
+          "maxLength": 20
+        },
+        "notes": {
+          "type": "string",
+          "description": "Key takeaways or notes",
+          "maxLength": 500
+        }
+      },
+      "required": ["id", "userId", "topicId", "topicName", "section", "durationMinutes", "completedPomodoros", "sessionType"]
+    },
+    "ErrorLog": {
+      "title": "ErrorLog",
+      "description": "CAT error logbook entry for mistakes analysis",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Entry ID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date recorded",
+          "maxLength": 20
+        },
+        "questionText": {
+          "type": "string",
+          "description": "Question text or prompt excerpt",
+          "maxLength": 2000
+        },
+        "topicName": {
+          "type": "string",
+          "description": "Associated syllabus topic",
+          "maxLength": 100
+        },
+        "section": {
+          "type": "string",
+          "description": "CAT section",
+          "maxLength": 10
+        },
+        "errorReason": {
+          "type": "string",
+          "description": "Root cause category",
+          "maxLength": 50
+        },
+        "correctApproach": {
+          "type": "string",
+          "description": "Actionable takeaway to prevent repeating",
+          "maxLength": 1000
+        },
+        "reviewed": {
+          "type": "boolean",
+          "description": "Whether reviewed during revision"
+        }
+      },
+      "required": ["id", "userId", "questionText", "topicName", "section", "errorReason", "correctApproach"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile with study goals and streak"
+    },
+    "/users/{userId}/studyState/{stateId}": {
+      "schema": "StudyState",
+      "description": "User study progress state including completed segments and roadmap progress"
+    },
+    "/users/{userId}/dailySubmissions/{submissionId}": {
+      "schema": "DailySubmission",
+      "description": "Daily test results and score deltas"
+    },
+    "/users/{userId}/mockScores/{mockId}": {
+      "schema": "MockScore",
+      "description": "Mock test scores and analysis"
+    },
+    "/users/{userId}/sessionLogs/{sessionId}": {
+      "schema": "SessionLog",
+      "description": "Pomodoro study logs on syllabus topics"
+    },
+    "/users/{userId}/errorLogs/{errorId}": {
+      "schema": "ErrorLog",
+      "description": "Mistake logbook for CAT questions"
+    }
+  }
+}

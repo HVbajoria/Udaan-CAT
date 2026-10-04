@@ -1,0 +1,174 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Health check connection path
+    match /test/{docId} {
+      allow get: if true;
+    }
+
+    // Security Primitives
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function parentUserExists(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId));
+    }
+
+    // Validation Blueprints
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'targetPercentile', 'dailyHours', 'streak']) &&
+        data.id is string && data.id == request.auth.uid &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.email is string && data.email.size() <= 150 &&
+        data.targetPercentile is number && data.targetPercentile >= 0 && data.targetPercentile <= 100 &&
+        data.dailyHours is number && data.dailyHours >= 0 && data.dailyHours <= 24 &&
+        data.streak is number && data.streak >= 0 &&
+        (!('targetIIMs' in data) || (data.targetIIMs is list && data.targetIIMs.size() <= 30)) &&
+        (!('currentDay' in data) || (data.currentDay is number && data.currentDay >= 1 && data.currentDay <= 50)) &&
+        (!('baselineCompleted' in data) || data.baselineCompleted is bool) &&
+        (!('dailyRemindersEnabled' in data) || data.dailyRemindersEnabled is bool) &&
+        (!('reminderTime' in data) || (data.reminderTime is string && data.reminderTime.size() <= 20)) &&
+        (!('lastActiveDate' in data) || (data.lastActiveDate is string && data.lastActiveDate.size() <= 25)) &&
+        (!('registeredAt' in data) || (data.registeredAt is string && data.registeredAt.size() <= 50));
+    }
+
+    function isValidStudyState(data) {
+      return data.keys().hasAll(['userId', 'completedSegmentIds', 'completedDays']) &&
+        data.userId is string && data.userId == request.auth.uid &&
+        data.completedSegmentIds is list && data.completedSegmentIds.size() <= 500 &&
+        data.completedDays is list && data.completedDays.size() <= 60 &&
+        (!('topicMastery' in data) || data.topicMastery is map) &&
+        (!('diagnosticResult' in data) || data.diagnosticResult is map || data.diagnosticResult == null) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidDailySubmission(data) {
+      return data.keys().hasAll(['id', 'userId', 'date', 'score', 'maxScore', 'accuracy']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.userId is string && data.userId == request.auth.uid &&
+        data.date is string && data.date.size() <= 25 &&
+        data.score is number &&
+        data.maxScore is number && data.maxScore > 0 &&
+        data.accuracy is number && data.accuracy >= 0 && data.accuracy <= 100 &&
+        (!('dayNumber' in data) || data.dayNumber is number) &&
+        (!('topicIds' in data) || (data.topicIds is list && data.topicIds.size() <= 30)) &&
+        (!('timeSpentSeconds' in data) || (data.timeSpentSeconds is number && data.timeSpentSeconds >= 0)) &&
+        (!('skillDelta' in data) || data.skillDelta is map);
+    }
+
+    function isValidMockScore(data) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'date', 'totalScore', 'percentile']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.userId is string && data.userId == request.auth.uid &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.date is string && data.date.size() <= 25 &&
+        data.totalScore is number &&
+        data.percentile is number && data.percentile >= 0 && data.percentile <= 100 &&
+        (!('type' in data) || (data.type is string && data.type.size() <= 50)) &&
+        (!('varcScore' in data) || data.varcScore is number) &&
+        (!('dilrScore' in data) || data.dilrScore is number) &&
+        (!('qaScore' in data) || data.qaScore is number) &&
+        (!('maxScore' in data) || data.maxScore is number) &&
+        (!('accuracy' in data) || data.accuracy is number) &&
+        (!('timeTakenMinutes' in data) || data.timeTakenMinutes is number) &&
+        (!('analysisNotes' in data) || (data.analysisNotes is string && data.analysisNotes.size() <= 2000)) &&
+        (!('mistakesSummary' in data) || data.mistakesSummary is map);
+    }
+
+    function isValidSessionLog(data) {
+      return data.keys().hasAll(['id', 'userId', 'topicId', 'topicName', 'section', 'durationMinutes', 'completedPomodoros', 'sessionType']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.userId is string && data.userId == request.auth.uid &&
+        data.topicId is string && data.topicId.size() <= 100 &&
+        data.topicName is string && data.topicName.size() <= 100 &&
+        data.section is string && data.section.size() <= 10 &&
+        data.durationMinutes is number && data.durationMinutes >= 0 && data.durationMinutes <= 600 &&
+        data.completedPomodoros is number && data.completedPomodoros >= 0 &&
+        data.sessionType is string && data.sessionType.size() <= 30 &&
+        (!('segmentId' in data) || (data.segmentId is string && data.segmentId.size() <= 100)) &&
+        (!('timestamp' in data) || (data.timestamp is string && data.timestamp.size() <= 50)) &&
+        (!('date' in data) || (data.date is string && data.date.size() <= 25)) &&
+        (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000));
+    }
+
+    function isValidErrorLog(data) {
+      return data.keys().hasAll(['id', 'userId', 'questionText', 'topicName', 'section', 'errorReason', 'correctApproach']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.userId is string && data.userId == request.auth.uid &&
+        data.questionText is string && data.questionText.size() <= 2000 &&
+        data.topicName is string && data.topicName.size() <= 100 &&
+        data.section is string && data.section.size() <= 10 &&
+        data.errorReason is string && data.errorReason.size() <= 50 &&
+        data.correctApproach is string && data.correctApproach.size() <= 1500 &&
+        (!('date' in data) || (data.date is string && data.date.size() <= 25)) &&
+        (!('reviewed' in data) || data.reviewed is bool);
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Study State Subcollection
+      match /studyState/{stateId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(stateId) && parentUserExists(userId) && isValidStudyState(incoming());
+        allow delete: if isOwner(userId) && isValidId(stateId);
+      }
+
+      // Daily Test Submissions Subcollection
+      match /dailySubmissions/{submissionId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(submissionId) && parentUserExists(userId) && isValidDailySubmission(incoming());
+        allow delete: if isOwner(userId) && isValidId(submissionId);
+      }
+
+      // Mock Scores Subcollection
+      match /mockScores/{mockId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(mockId) && parentUserExists(userId) && isValidMockScore(incoming());
+        allow delete: if isOwner(userId) && isValidId(mockId);
+      }
+
+      // Pomodoro Session Logs Subcollection
+      match /sessionLogs/{sessionId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(sessionId) && parentUserExists(userId) && isValidSessionLog(incoming());
+        allow delete: if isOwner(userId) && isValidId(sessionId);
+      }
+
+      // Error Logbook Subcollection
+      match /errorLogs/{errorId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(errorId) && parentUserExists(userId) && isValidErrorLog(incoming());
+        allow delete: if isOwner(userId) && isValidId(errorId);
+      }
+    }
+  }
+}
